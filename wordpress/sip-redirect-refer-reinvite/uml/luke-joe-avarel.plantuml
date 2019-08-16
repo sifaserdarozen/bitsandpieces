@@ -1,0 +1,23 @@
+@startuml
+
+title Joe Redirects Luke to Avarel
+
+participant "Lucky Luke"
+
+"Lucky Luke" -->> Joe: F1 INVITE
+Joe -->> "Lucky Luke": F2 302 Moved Temporarily
+"Lucky Luke" -->> Joe: F3 ACK
+
+"Lucky Luke" -->> Avarel: F4 INVITE
+Avarel -->> "Lucky Luke": F5 200 OK
+"Lucky Luke" -->> Avarel: F6 ACK
+
+note over "Lucky Luke",Avarel
+media flow between Lucky Luke and Avarel
+end note
+
+"Lucky Luke" -->> Avarel: F7 BYE
+Avarel -->> "Lucky Luke": F8 200 OK
+
+
+@enduml

@@ -1,0 +1,173 @@
+----------------------------------------------- 2019-07-26 20:02:02.831616
+UDP message sent (648 bytes):
+
+INVITE sip:service@10.228.212.34:5060 SIP/2.0
+Via: SIP/2.0/UDP 10.228.210.40:5062;branch=z9hG4bK-23268-1-0
+From: sipp <sip:sipp@10.228.210.40:5062>;tag=1
+To: sut <sip:service@10.228.212.34:5060>
+Call-ID: 1-23268@10.228.210.40
+CSeq: 1 INVITE
+Contact: sip:sipp@10.228.210.40:5062
+Max-Forwards: 70
+Subject: Bank robery
+Content-Type: application/sdp
+Content-Length:   267
+
+v=0
+o=LuckyLuke 1563442651 1563442651 IN IP4 10.228.210.40
+s=LucyLuke
+c=IN IP4 10.228.210.40
+t=0 0
+a=sendrecv
+m=audio 6000 RTP/AVP 111
+a=rtpmap:111 OPUS/48000/2
+a=fmtp:111 mode=60 type=fixed, bitrate=48000, useinbandfec=1;stereo=1
+a=silenceSupp:off - - - -
+
+----------------------------------------------- 2019-07-26 20:02:02.836760
+UDP message received [296] bytes :
+
+SIP/2.0 100 Trying
+Via: SIP/2.0/UDP 10.228.210.40:5062;branch=z9hG4bK-23268-1-0
+From: sipp <sip:sipp@10.228.210.40:5062>;tag=1
+To: sut <sip:service@10.228.212.34:5060>;tag=1
+Call-ID: 1-23268@10.228.210.40
+CSeq: 1 INVITE
+Contact: <sip:10.228.212.34:5060;transport=UDP>
+Content-Length: 0
+
+
+----------------------------------------------- 2019-07-26 20:02:02.837354
+UDP message received [339] bytes :
+
+SIP/2.0 302 Moved Temporarily
+Via: SIP/2.0/UDP 10.228.210.40:5062;branch=z9hG4bK-23268-1-0
+From: sipp <sip:sipp@10.228.210.40:5062>;tag=1
+To: sut <sip:service@10.228.212.34:5060>;tag=1
+Call-ID: 1-23268@10.228.210.40
+CSeq: 1 INVITE
+Contact: <sip:Avarel@10.228.212.34:5080;transport=UDP>
+User-Agent: edge Server
+Content-Length: 0
+
+
+----------------------------------------------- 2019-07-26 20:02:02.837652
+UDP message sent (351 bytes):
+
+ACK sip:service@10.228.212.34:5060 SIP/2.0
+Via: SIP/2.0/UDP 10.228.210.40:5062;branch=z9hG4bK-23268-1-4
+From: sipp <sip:sipp@10.228.210.40:5062>;tag=1
+To: sut <sip:service@10.228.212.34:5060>;tag=1
+Call-ID: 1-23268@10.228.210.40
+CSeq: 1 ACK
+Contact: sip:sipp@10.228.210.40:5062
+Max-Forwards: 70
+Subject: Performance Test
+Content-Length: 0
+
+
+----------------------------------------------- 2019-07-26 20:02:02.944685
+UDP message sent (639 bytes):
+
+INVITE sip:10.228.212.34:5080 SIP/2.0
+Via: SIP/2.0/UDP 10.228.210.40:5062;branch=z9hG4bK-23268-1-7
+From: sipp <sip:sipp@10.228.210.40:5062>;tag=1
+To: sut <sip:service@10.228.212.34:5080>
+Call-ID: 1-23268@10.228.210.40
+CSeq: 1 INVITE
+Contact: sip:sipp@10.228.210.40:5062
+Max-Forwards: 70
+Subject: Bank robery
+Content-Type: application/sdp
+Content-Length:   266
+
+v=0
+o=LucyLuke 1563442651 1563442651 IN IP4 10.228.210.40
+s=LucyLuke
+c=IN IP4 10.228.210.40
+t=0 0
+a=sendrecv
+m=audio 6000 RTP/AVP 111
+a=rtpmap:111 OPUS/48000/2
+a=fmtp:111 mode=60 type=fixed, bitrate=48000, useinbandfec=1;stereo=1
+a=silenceSupp:off - - - -
+
+----------------------------------------------- 2019-07-26 20:02:02.950394
+UDP message received [296] bytes :
+
+SIP/2.0 100 Trying
+Via: SIP/2.0/UDP 10.228.210.40:5062;branch=z9hG4bK-23268-1-7
+From: sipp <sip:sipp@10.228.210.40:5062>;tag=1
+To: sut <sip:service@10.228.212.34:5080>;tag=1
+Call-ID: 1-23268@10.228.210.40
+CSeq: 1 INVITE
+Contact: <sip:10.228.212.34:5080;transport=UDP>
+Content-Length: 0
+
+
+----------------------------------------------- 2019-07-26 20:02:02.951149
+UDP message received [524] bytes :
+
+SIP/2.0 200 OK
+Via: SIP/2.0/UDP 10.228.210.40:5062;branch=z9hG4bK-23268-1-7
+From: sipp <sip:sipp@10.228.210.40:5062>;tag=1
+To: sut <sip:service@10.228.212.34:5080>;tag=1
+Call-ID: 1-23268@10.228.210.40
+CSeq: 1 INVITE
+Contact: <sip:10.228.212.34:5080;transport=UDP>
+Content-Type: application/sdp
+Content-Length:   197
+
+v=0
+o=Avarel 3876345150 3876345150 IN IP4 10.228.212.34
+s=avarel
+i=connectionId:1714849
+c=IN IP4 10.228.212.34
+t=3772431533 0
+m=audio 6000 RTP/AVP 111
+a=rtpmap:111 OPUS/48000/2
+a=sendrecv
+
+----------------------------------------------- 2019-07-26 20:02:02.951254
+UDP message sent (347 bytes):
+
+ACK sip:service@10.228.212.34:5080 SIP/2.0
+Via: SIP/2.0/UDP 10.228.210.40:5062;branch=z9hG4bK-23268-1-11
+From: sipp <sip:sipp@10.228.210.40:5062>;tag=1
+To: sut <sip:service@10.228.212.34:5080>;tag=1
+Call-ID: 1-23268@10.228.210.40
+CSeq: 1 ACK
+Contact: sip:sipp@10.228.210.40:5062
+Max-Forwards: 70
+Subject: Bank Robery
+Content-Length: 0
+
+
+----------------------------------------------- 2019-07-26 20:02:12.955912
+UDP message sent (352 bytes):
+
+BYE sip:service@10.228.212.34:5080 SIP/2.0
+Via: SIP/2.0/UDP 10.228.210.40:5062;branch=z9hG4bK-23268-1-13
+From: sipp <sip:sipp@10.228.210.40:5062>;tag=1
+To: sut <sip:service@10.228.212.34:5080>;tag=1
+Call-ID: 1-23268@10.228.210.40
+CSeq: 2 BYE
+Contact: sip:sipp@10.228.210.40:5062
+Max-Forwards: 70
+Subject: Performance Test
+Content-Length: 0
+
+
+----------------------------------------------- 2019-07-26 20:02:12.958949
+UDP message received [290] bytes :
+
+SIP/2.0 200 OK
+Via: SIP/2.0/UDP 10.228.210.40:5062;branch=z9hG4bK-23268-1-13
+From: sipp <sip:sipp@10.228.210.40:5062>;tag=1
+To: sut <sip:service@10.228.212.34:5080>;tag=1
+Call-ID: 1-23268@10.228.210.40
+CSeq: 2 BYE
+Contact: <sip:10.228.212.34:5080;transport=UDP>
+Content-Length: 0
+
+
