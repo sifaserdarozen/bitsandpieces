@@ -1,0 +1,52 @@
+@startuml
+
+title
+    kvm / minikube / kubectl applications running in linux host
+end title
+
+participant "kubectl" as kubectl
+participant "minikube" as minikube
+participant "type-2 hypervizor\n kvm / virtualbox / hyper-v" as hypervizor
+
+== start / create local kubernetes cluster ==
+
+activate minikube
+activate kubectl
+activate hypervizor
+
+note over minikube
+    Minikube uses hypervizor to create a virtual machine,
+    and then configures it to prepare an all in one
+    (key value store, manager and worker node) kubernetes 
+    cluster.
+end note
+
+[-> minikube: start
+
+note over hypervizor
+    Hypervizor is responsible from creating virtual
+    machine that will hold kubernetes cluster.
+end note
+
+minikube -> hypervizor: create
+
+hypervizor -> kubecluster ** : create
+activate kubecluster
+
+minikube -> kubecluster : prepare single node kubernetes cluster
+
+== access / control local kubernetes cluster ==
+
+kubectl -> kubecluster: access / control
+
+
+== delete local kubeernetes cluster ==
+
+[-> minikube: delete
+minikube -> kubecluster !!
+
+deactivate kubecluster
+
+
+hide footbox
+@enduml
