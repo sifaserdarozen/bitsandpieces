@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+  namespace: default
+data:
+  STRING: I have no home in this planet, only gravity pulls me down!
+  PATH: /usr/share/nginx/html/index.html
