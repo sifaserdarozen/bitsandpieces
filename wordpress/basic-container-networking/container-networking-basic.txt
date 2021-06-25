@@ -1,0 +1,155 @@
+<p>&nbsp;</p>
+<h2><a href="https://sifaserdarozen.files.wordpress.com/2021/06/single-host-container-networking-1.png"><img class="alignnone size-full wp-image-8730" src="https://sifaserdarozen.files.wordpress.com/2021/06/single-host-container-networking-1.png" alt="single-host-container-networking" width="1109" height="516"></a></h2>
+<h2>What is a container?</h2>
+<p><a href="https://www.ianlewis.org/en/what-are-kubernetes-pods-anyway" target="_blank" rel="noopener">Linux containers</a> are normal processes that are using namespace &amp; cgroup features of kernel. With these, containers are able to have isolated namespaces and resource limits. By default, docker creates a set of hostname, process ids, file system, network interfaces and ipc stack for the container that is running.</p>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/container-namespaces.png"><img class="alignnone size-full wp-image-8717" src="https://sifaserdarozen.files.wordpress.com/2021/06/container-namespaces.png" alt="container-namespaces" width="614" height="455"></a></p>
+<p>Containers, specified by <a href="https://opencontainers.org/" target="_blank" rel="noopener">Open Containers Initiative</a>, run on an host operating system and get low level networking primitives through host OS.&nbsp;</p>
+<h2>Some basics and running a test container</h2>
+<p>Before starting to dive deep, lets have a setup. The basic docker objects are images, containers, networks and volumes. The docker <strong>system prune -a</strong> command will help removing all stopped containers, dangling images, images without a running container and unused networks, and provide somewhat clean environment.</p>
+<pre>docker system prune -a</pre>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/docker-system-prune.png"><img class="alignnone size-full wp-image-8661" src="https://sifaserdarozen.files.wordpress.com/2021/06/docker-system-prune.png" alt="docker-system-prune" width="1103" height="363"></a></p>
+<p>docker inspect will provide information about a docker resource. Lets inspect an handy alpine image.</p>
+<pre>docker pull alpine:latest<br>docker inspect alpine:latest &gt; alpine-inspect.txt</pre>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/docker-pulling-an-image.png"><img class="alignnone size-full wp-image-8659" src="https://sifaserdarozen.files.wordpress.com/2021/06/docker-pulling-an-image.png" alt="docker-pulling-an-image" width="1317" height="361"></a></p>
+<p>Resulting <strong>alpine-inspect.txt</strong> will be similar to</p>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/docker-image-configs.png"><img class="alignnone size-full wp-image-8657" src="https://sifaserdarozen.files.wordpress.com/2021/06/docker-image-configs.png" alt="docker-image-configs" width="990" height="1081"></a></p>
+<p>Here we see two configurations, <strong>ContainerConfig</strong> &amp; <strong>Config</strong>. What is the difference? <strong>Config</strong> contains the image’s information. Besides, <strong>ContainerConfig</strong> shows the details of the container that was used to build the last layer of the image. The new container that will be created from the image with <strong>docker run\create</strong> will apply the data of <strong>Config</strong>.</p>
+<p>Good. For alpine container, entrance will be through <strong>"Cmd": ["/bin/sh"] &amp; "Entrypoint": null. </strong>There is a good <a href="https://goinbigdata.com/docker-run-vs-cmd-vs-entrypoint/" target="_blank" rel="noopener">article for Cmd &amp; Entrypoint difference</a>. As a summary, CMD defines default commands and parameters (or if an ENTRYPOINT is present, parameters that would be added) for a container. CMD is an instruction that is best to use if you need a default command which users can easily override.&nbsp; ENTRYPOINT is preferred when you want to define a container with a specific executable. You can override an ENTRYPOINT when starting a container with the --entrypoint flag.</p>
+<p>For alpine, there is no ENTRYPOINT but CMD of "/bin/sh", which makes sense as being a base image. Lets do something and try to get network interfaces of alpine.</p>
+<p>we can override the default command and get the network interfaces through</p>
+<pre>docker run alpine ip add</pre>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/docker-ip-addr.png"><img class="alignnone size-full wp-image-8658" src="https://sifaserdarozen.files.wordpress.com/2021/06/docker-ip-addr.png" alt="docker-ip-addr" width="1191" height="526"></a></p>
+<p>or use the default CMD and attach to the shell with -it option</p>
+<pre>docker run -it alpine</pre>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/docker-run-default-command.png"><img class="alignnone size-full wp-image-8660" src="https://sifaserdarozen.files.wordpress.com/2021/06/docker-run-default-command.png" alt="docker-run-default-command" width="1336" height="522"></a></p>
+<p>Now, a question may arise about eth0, what is it and where does it come from?</p>
+<h2>Single Host Containers - bridge networking</h2>
+<p>In the previous section, we run a single host alpine container. Since we did not specified a network preference, default bridge network is used. In this configuration, docker will create a bridge in host, and guest&nbsp; running in bridge mode would have an interface connected to this bridge. Therefore they would have an isolated network inside the host. Container in the same host can talk with each other through this bridge, and default route in host will enable the container to reach outside.</p>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/single-host-bridge.png"><img class="alignnone size-full wp-image-8718" src="https://sifaserdarozen.files.wordpress.com/2021/06/single-host-bridge.png" alt="single-host-bridge" width="614" height="455"></a></p>
+<p>Lets start two alpine containers and have a look</p>
+<pre>docker run --net=bridge -it alpine</pre>
+<p>we see that containers take ip from 172.17.0.0/16 range, and can ping each other.</p>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/docker-singe-host-bridge-ping.png"><img class="alignnone size-full wp-image-8665" src="https://sifaserdarozen.files.wordpress.com/2021/06/docker-singe-host-bridge-ping.png" alt="docker-singe-host-bridge-ping" width="2213" height="1031"></a></p>
+<p>Looking at the host network resources, we see that there is a bridge that connects these container interfaces.</p>
+<pre>docker network list<br>docker network inspect bridge</pre>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/docker-singe-host-bridge-network-resource.png"><img class="alignnone size-full wp-image-8664" src="https://sifaserdarozen.files.wordpress.com/2021/06/docker-singe-host-bridge-network-resource.png" alt="docker-singe-host-bridge-network-resource" width="2475" height="1062"></a></p>
+<h2>Single Host Containers - host networking</h2>
+<p>When we do not want to isolate the guest containers but actually use the network namespace of the host, <strong>--net=host</strong> can be used to switch into host networking mode. Guest container will share network resources whatever host already have, much like any other process running in the host.</p>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/single-host-host-networking.png"><img class="alignnone size-full wp-image-8719" src="https://sifaserdarozen.files.wordpress.com/2021/06/single-host-host-networking.png" alt="single-host-host-networking" width="614" height="265"></a></p>
+<p>docker run --net=host -it alpine</p>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/singe-host-host-network.png"><img class="alignnone size-full wp-image-8668" src="https://sifaserdarozen.files.wordpress.com/2021/06/singe-host-host-network.png" alt="singe-host-host-network" width="2463" height="1273"></a></p>
+<p>This mode has the advantage of removing redirection and increasing network speed. The disadvantage is, it increases attack surface with using host network namespace.</p>
+<h2>Single Host Containers - container networking</h2>
+<p>Container networking enables network namespace sharing between containers without touching host. Kubernetes uses this mode for containers in the pod.</p>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/single-host-container-networking-2.png"><img class="alignnone size-full wp-image-8732" src="https://sifaserdarozen.files.wordpress.com/2021/06/single-host-container-networking-2.png" alt="single host-container-networking" width="553" height="383"></a></p>
+<p>Assuming we have a container ,</p>
+<pre>docker run --name=base --net=bridge -it alpine</pre>
+<p>we can start another container with the same network namespace of an already existing one</p>
+<pre>docker run --net=container:base -t alpine</pre>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/singe-host-container-network.png"><img class="alignnone size-full wp-image-8670" src="https://sifaserdarozen.files.wordpress.com/2021/06/singe-host-container-network.png" alt="singe-host-container-network" width="2190" height="781"></a></p>
+<p>resulting bridge network will contain one container entry as expected</p>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/singe-host-container-network-inspection.png"><img class="alignnone size-full wp-image-8671" src="https://sifaserdarozen.files.wordpress.com/2021/06/singe-host-container-network-inspection.png" alt="singe-host-container-network-inspection" width="2491" height="1077"></a></p>
+<p>Similar to using a peer containers network namespace, we can share its ipc or pid space as well, like</p>
+<pre>docker run --name alpine --net<span class="o">=</span>container:nginx --ipc<span class="o">=</span>container:nginx --pid<span class="o">=</span>container:nginx -it alpine</pre>
+<p>&nbsp;</p>
+<h2>Single Host Containers - no networking</h2>
+<p>This mode makes containers have their own namespace, isolated by default. This is the use case when no network communication is needed. Besides, it allows custom network setup, if needed.</p>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/single-host-no-networking-1.png"><img class="alignnone size-full wp-image-8731" src="https://sifaserdarozen.files.wordpress.com/2021/06/single-host-no-networking-1.png" alt="single-host-no-networking" width="611" height="327"></a></p>
+<pre>docker run --net=none -it alpine</pre>
+<p>As a result, he container will only have loopback</p>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/singe-host-no-network.png"><img class="alignnone size-full wp-image-8674" src="https://sifaserdarozen.files.wordpress.com/2021/06/singe-host-no-network.png" alt="singe-host-no-network" width="1383" height="487"></a></p>
+<h2>Network Security- icc / ip_forward / iptables</h2>
+<p>By default, inter-container communication is enabled (<strong>--icc=true</strong>), allowing containers to talk with each other without any restrictions. Moreover,&nbsp;<strong>--ip_forward</strong> and <strong>--iptables</strong> flags tune communication between containers and the environment.&nbsp;</p>
+<h2>Multi Host Containers</h2>
+<p>For multi host containers, assigning IP addresses to containers is a problem to solve. It can be solved through <a href="https://docs.docker.com/network/overlay/" target="_blank" rel="noopener">Overlay Networks</a>, where an orthogonal, practically hidden networking layer is spawned, distributed over different hosts. <strong>docker_gwbridge</strong> &amp; <strong>ingress</strong> network resources perform overlaying.</p>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/docker-multihost-overlay-network.png"><img class="alignnone size-full wp-image-8680" src="https://sifaserdarozen.files.wordpress.com/2021/06/docker-multihost-overlay-network.png" alt="docker-multihost-overlay-network" width="1095" height="298"></a></p>
+<p>Besides, with Linux kernel version 3.19 IPVLAN feature is introduced. Each container of the host gets a unique and routable IP address.&nbsp; IPVLAN takes a single network interface and creates multiple virtual network interfaces with different MAC addresses assigned to them, which can be used in containers.</p>
+<p>&nbsp;</p>
+<h2>Container Network Interface</h2>
+<p><a href="https://github.com/containernetworking/cni" target="_blank" rel="noopener">CNI</a> is a plugin based networking specification and library suite for Linux containers. Using its config file CNI uses plugins to add or remove containers from network. For CNI internals, there is an <a href="http://www.dasblinkenlichten.com/understanding-cni-container-networking-interface/" target="_blank" rel="noopener">excellent blog post</a> from Langemak.</p>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/cni-plugin.png"><img class="alignnone size-full wp-image-8689" src="https://sifaserdarozen.files.wordpress.com/2021/06/cni-plugin.png" alt="cni-plugin" width="1179" height="414"></a></p>
+<p>&nbsp;</p>
+<h2>Kubernetes Networking</h2>
+<p>Kubernetes networking primitives are;</p>
+<ul>
+<li>Containers can communicate with all other containers without network address translation.</li>
+<li>Nodes can communicate with all containers (and vice versa) without network address translation.</li>
+<li>The IP a container is same for himself and others.</li>
+<li>Containers of the same pod share the same network namespace, so can talk with each other on localhost.</li>
+<li>Pods should have an IP address of a flat networking namespace with connection to other nodes and pods.</li>
+<li>External traffic can be routed to pods through ingress, pods can reach external APIs through egress rules.</li>
+</ul>
+<p>When the pod is spinned, <a href="https://www.ianlewis.org/en/almighty-pause-container" target="_blank" rel="noopener">an infrastructure container</a> (pause container) ramps up in bridge mode that will get the pods ip and create network namespace. All other containers are initialized with container networking with this infrastructure container to share the same network namespace. As the containers share the same port range, it is developers responsibility to avoid collusions.</p>
+<p>Kubernetes Pods have routable ip which can be used inter pod communication, however, as pods are ephemeral, it is better to use service ips, that are stable and can be resolved through DNS.</p>
+<p>Kubernetes uses flat ip space, whereas docker containers have ip in the range 172.x.x.x range. If the container connect to any other one, the observed ip address will be different. For this reason (since self seen ip and observed ip is different), docker containers can not self register themselves to any service.&nbsp;</p>
+<p>Pod declarations allow specifying the containers and Kubernetes automates setting up corresponding namespaces and cgroups. Pod containers will use their own cgroups but may share hostname, pid, network and ipc spaces. For example,</p>
+<p>Start with a base container that will initialize namespaces</p>
+<pre><span class="err">docker run -d --name base -p 8080:80 gcr.io/google_containers/pause-amd64:3.0</span></pre>
+<p>then share this base containers network, pid and ipc namespaces as</p>
+<pre>docker run --name alpine --net<span class="o">=</span>container:base --ipc<span class="o">=</span>container:base --pid<span class="o">=</span>container:base -it alpine</pre>
+<p>With this setup, each container thinks that they are running on the same machine. They can talk to each other on localhost, they can use shared volumes and they can use IPC or send each other signals like HUP or TERM.</p>
+<p>Usual parent and keep alive container of a pod that initialize network and other resources is <a href="https://www.ianlewis.org/en/almighty-pause-container" target="_blank" rel="noopener">"pause" container</a>. Other containers of the pod shares the same network namespace. when we look at running containers of a kubernetes node, we will see many "pause" containers that are hidden.</p>
+<p><a href="https://sifaserdarozen.files.wordpress.com/2021/06/minikube-pause-container.png"><img class="alignnone size-full wp-image-8710" src="https://sifaserdarozen.files.wordpress.com/2021/06/minikube-pause-container.png" alt="minikube-pause-container" width="1733" height="188"></a></p>
+<p>Pause container assumes the role of PID 1 and will reap any zombies by calling <strong>wai</strong>t on them when they are orphaned by their parent processes. The code is surprisingly simple;</p>
+<pre><span class="cm">/*</span>
+<span class="cm">Copyright 2016 The Kubernetes Authors.</span>
+<span class="cm">Licensed under the Apache License, Version 2.0 (the "License");</span>
+<span class="cm">you may not use this file except in compliance with the License.</span>
+<span class="cm">You may obtain a copy of the License at</span>
+<span class="cm">    http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="cm">Unless required by applicable law or agreed to in writing, software</span>
+<span class="cm">distributed under the License is distributed on an "AS IS" BASIS,</span>
+<span class="cm">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="cm">See the License for the specific language governing permissions and</span>
+<span class="cm">limitations under the License.</span>
+<span class="cm">*/</span>
+
+<span class="cp">#include</span> <span class="cpf">&lt;signal.h&gt;</span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span>
+<span class="cp">#include</span> <span class="cpf">&lt;sys/types.h&gt;</span>
+<span class="cp">#include</span> <span class="cpf">&lt;sys/wait.h&gt;</span>
+<span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span>
+
+<span class="k">static</span> <span class="kt">void</span> <span class="nf">sigdown</span><span class="p">(</span><span class="kt">int</span> <span class="n">signo</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">psignal</span><span class="p">(</span><span class="n">signo</span><span class="p">,</span> <span class="s">"Shutting down, got signal"</span><span class="p">);</span>
+  <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="kt">void</span> <span class="nf">sigreap</span><span class="p">(</span><span class="kt">int</span> <span class="n">signo</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">while</span> <span class="p">(</span><span class="n">waitpid</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">WNOHANG</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">getpid</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="cm">/* Not an error because pause sees use outside of infra containers. */</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"Warning: pause should be the first process</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">sigaction</span><span class="p">(</span><span class="n">SIGINT</span><span class="p">,</span> <span class="o">&amp;</span><span class="p">(</span><span class="k">struct</span> <span class="n">sigaction</span><span class="p">){.</span><span class="n">sa_handler</span> <span class="o">=</span> <span class="n">sigdown</span><span class="p">},</span> <span class="nb">NULL</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">sigaction</span><span class="p">(</span><span class="n">SIGTERM</span><span class="p">,</span> <span class="o">&amp;</span><span class="p">(</span><span class="k">struct</span> <span class="n">sigaction</span><span class="p">){.</span><span class="n">sa_handler</span> <span class="o">=</span> <span class="n">sigdown</span><span class="p">},</span> <span class="nb">NULL</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">sigaction</span><span class="p">(</span><span class="n">SIGCHLD</span><span class="p">,</span> <span class="o">&amp;</span><span class="p">(</span><span class="k">struct</span> <span class="n">sigaction</span><span class="p">){.</span><span class="n">sa_handler</span> <span class="o">=</span> <span class="n">sigreap</span><span class="p">,</span>
+                                             <span class="p">.</span><span class="n">sa_flags</span> <span class="o">=</span> <span class="n">SA_NOCLDSTOP</span><span class="p">},</span>
+                <span class="nb">NULL</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">3</span><span class="p">;</span>
+
+  <span class="k">for</span> <span class="p">(;;)</span>
+    <span class="n">pause</span><span class="p">();</span>
+  <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"Error: infinite loop terminated</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+  <span class="k">return</span> <span class="mi">42</span><span class="p">;</span>
+<span class="p">}</span></pre>
+<h2>&nbsp;</h2>
+<h2>But how can we achieve this namespace sharing?</h2>
+<p>In Linux new process inherits namespaces from the parent process. The way to have own namespaces is through <strong>unshare</strong> system call. An example of a ramping a shell in new PID, UTS, IPC, and mount namespaces is through</p>
+<pre><span class="err">sudo unshare --pid --uts --ipc --mount -f chroot rootfs /bin/sh</span></pre>
+<p>The new processes can be added to previous namespace through <strong>setns</strong> system call.</p>
+<h2>Process creation</h2>
+<p>A sample process creation is through fork(), that creates a copy of the parent process, and exec() that changes the executable. Linux threads are lightweight processes, that differ in memory allocation, as they share text, data and heap. Usually programming languages will provide a wrapper function to ease these. Each process will have its entry in the process table that also keeps the process state and exit code. After a child process finishes running, its process table entry remains intact till parent queries its exit code through wait() syscall. What happens if parent does not wait(), or crashes in between? In this case, the child may become zombie. Zombie processes are the ones that have stopped running but their process table entry still exists because the parent did not wait() ed or there is no running parent at all. <br>When a process's parent dies before the child, kernel assigns the child process to the "init" process (process with PID 1). The init process becomes the parent meaning that it should wait() the adopted process to get its exit code to avoid it become a zombie.</p>
+<p>With Docker, each container usually has its own PID namespace and the ENTRYPOINT process is the init process, and expected to handle this responsibility. Luckly, If the container is not a general purpose base container it wont have forks() and this wont be problem.</p>
+<p>&nbsp;</p>
+<h2>References</h2>
+<p><a href="https://www.nginx.com/resources/library/container-networking-docker-kubernetes/" target="_blank" rel="noopener">Container networking from Docker to Kubernetes</a></p>
+<p><a href="https://www.ianlewis.org/en/what-are-kubernetes-pods-anyway" target="_blank" rel="noopener">What are Kubernetes Pods Anyway?</a></p>
+<p><a href="https://www.ianlewis.org/en/almighty-pause-container" target="_blank" rel="noopener">The Almighty Pause Container</a></p>
+<p>&nbsp;</p>

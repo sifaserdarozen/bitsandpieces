@@ -1,0 +1,45 @@
+[
+    {
+        "Name": "bridge",
+        "Id": "ecb08666e59a30a0bc162ee7215d561e2c813ae1df68eb12a21a845bc2bd19a0",
+        "Created": "2021-06-16T06:26:25.9005817Z",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+                {
+                    "Subnet": "172.17.0.0/16",
+                    "Gateway": "172.17.0.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {
+            "d38b4bbaeecd3345615cc4576b2e4329d17625910f6df0860034ae54327e8e76": {
+                "Name": "wonderful_kapitsa",
+                "EndpointID": "4e670fa80ca622acb35de876c8053d0a9e3accee38e057f96e30dfcd025cb1f1",
+                "MacAddress": "02:42:ac:11:00:02",
+                "IPv4Address": "172.17.0.2/16",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {
+            "com.docker.network.bridge.default_bridge": "true",
+            "com.docker.network.bridge.enable_icc": "true",
+            "com.docker.network.bridge.enable_ip_masquerade": "true",
+            "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+            "com.docker.network.bridge.name": "docker0",
+            "com.docker.network.driver.mtu": "1500"
+        },
+        "Labels": {}
+    }
+]

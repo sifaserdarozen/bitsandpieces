@@ -1,0 +1,52 @@
+[
+    {
+        "Name": "bridge",
+        "Id": "ecb08666e59a30a0bc162ee7215d561e2c813ae1df68eb12a21a845bc2bd19a0",
+        "Created": "2021-06-16T06:26:25.9005817Z",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+                {
+                    "Subnet": "172.17.0.0/16",
+                    "Gateway": "172.17.0.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {
+            "2acc4d12fb5649fae50d5961a6d3d7fc5d7e0cec5e6c12cac468f52870a0b774": {
+                "Name": "unruffled_goldstine",
+                "EndpointID": "09c0eb761776bb0e50577edd9ac8502886b4196b1245eb2fd6c55913a007c0bf",
+                "MacAddress": "02:42:ac:11:00:02",
+                "IPv4Address": "172.17.0.2/16",
+                "IPv6Address": ""
+            },
+            "e3910350ef26bec89517611491c320cdc94af1ed25eb0fae7f3ff1a8f57fbde7": {
+                "Name": "nifty_lamarr",
+                "EndpointID": "da40e253bdd4c94a31c4d80858dbad5885d714cc00b8625451a31d9e7308c546",
+                "MacAddress": "02:42:ac:11:00:03",
+                "IPv4Address": "172.17.0.3/16",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {
+            "com.docker.network.bridge.default_bridge": "true",
+            "com.docker.network.bridge.enable_icc": "true",
+            "com.docker.network.bridge.enable_ip_masquerade": "true",
+            "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+            "com.docker.network.bridge.name": "docker0",
+            "com.docker.network.driver.mtu": "1500"
+        },
+        "Labels": {}
+    }
+]
