@@ -5,10 +5,17 @@ services:
     container_name: proxy
     volumes:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - logs:/var/log/proxy
     ports:
       - 8080:80
     networks:
       - web
+
+  logparser:
+    image: logparser:0.1
+    container_name: logparser
+    volumes:
+      - logs:/var/log/logparser:ro
 
   web:
     image: ratetest-web:0.1
@@ -18,5 +25,7 @@ services:
     networks:
       - web
 
+volumes:
+  logs:
 networks:
   web:

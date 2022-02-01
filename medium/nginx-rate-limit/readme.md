@@ -13,6 +13,12 @@ cd web
 docker build -t ratetest-web:0.1 -f ./Dockerfile .
 ```
 
+Build logparser server image in **logparser** directory
+```
+cd logparser
+docker build -t logparser:0.1 -f ./Dockerfile .
+```
+
 
 ### Setup environment
 ```
@@ -33,9 +39,22 @@ for i in {1..20}; do curl -s -o /dev/null -w "%{http_code}" localhost:8080; echo
 ```
 
 
-### Teardown environment
+### Monitoring
+Basic nginx proxy metrics can be reached from nginx
 ```
-docker-compose down
+curl localhost:8080/monitoring
+```
+
+Additional response code metrics can be reached from logparser
+```
+docker exec -it logparser wget -qO- localhost
+```
+
+
+### Teardown environment
+Shared volumes will not be deleted by default. **-v** will handle cleanup of volumes
+```
+docker-compose down -v
 ```
 
 
