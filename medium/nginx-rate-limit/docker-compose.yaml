@@ -10,12 +10,17 @@ services:
       - 8080:80
     networks:
       - web
+      - monitoring
 
   logparser:
     image: logparser:0.1
     container_name: logparser
     volumes:
       - logs:/var/log/logparser:ro
+    expose:
+      - "80"
+    networks:
+      - monitoring
 
   web:
     image: ratetest-web:0.1
@@ -25,7 +30,39 @@ services:
     networks:
       - web
 
+  telegraf:
+    image: telegraf:1.21-alpine
+    container_name: telegraf
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    networks:
+      - monitoring
+
+  influxdb:
+    image: influxdb:2.1-alpine
+    container_name: influxdb
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=telegraf
+      - DOCKER_INFLUXDB_INIT_PASSWORD=telegraf
+      - DOCKER_INFLUXDB_INIT_ORG=telegraf
+      - DOCKER_INFLUXDB_INIT_BUCKET=telegraf
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=telegraftoken
+    expose:
+      - "8086"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:8.3.0
+    container_name: grafana
+    ports:
+      - 3000:3000
+    networks:
+      - monitoring
+
 volumes:
   logs:
 networks:
   web:
+  monitoring:

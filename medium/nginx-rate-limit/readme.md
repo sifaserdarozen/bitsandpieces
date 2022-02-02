@@ -51,6 +51,16 @@ docker exec -it logparser wget -qO- localhost
 ```
 
 
+### Upload data source and dashboard
+Grafana should be initialized with InfluxDB as data source. 
+Moreover, panels for metrics should be created.
+```
+cd grafana
+sh upload.sh
+```
+
+
+
 ### Teardown environment
 Shared volumes will not be deleted by default. **-v** will handle cleanup of volumes
 ```
