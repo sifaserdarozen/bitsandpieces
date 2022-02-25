@@ -1,0 +1,55 @@
+version: '3'
+services:
+  proxy:
+    image: proxy:0.1
+    container_name: proxy
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 8080:80
+    networks:
+      - web
+      - monitoring
+
+  web:
+    image: ratetest-web:0.1
+    container_name: web
+    expose:
+      - "80"
+    networks:
+      - web
+
+  telegraf:
+    image: telegraf:1.21-alpine
+    container_name: telegraf
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    networks:
+      - monitoring
+
+  influxdb:
+    image: influxdb:2.1-alpine
+    container_name: influxdb
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=telegraf
+      - DOCKER_INFLUXDB_INIT_PASSWORD=telegraf
+      - DOCKER_INFLUXDB_INIT_ORG=telegraf
+      - DOCKER_INFLUXDB_INIT_BUCKET=telegraf
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=telegraftoken
+    expose:
+      - "8086"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:8.3.0
+    container_name: grafana
+    ports:
+      - 3000:3000
+    networks:
+      - monitoring
+
+networks:
+  web:
+  monitoring:
