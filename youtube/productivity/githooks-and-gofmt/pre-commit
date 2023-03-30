@@ -1,0 +1,11 @@
+#!/bin/bash
+
+STAGED_GO_FILES_TO_LINT=$(git diff --cached --name-only -- '*.go')
+
+for file in $STAGED_GO_FILES_TO_LINT; do
+    go fmt $file
+    git add $file
+done
+
+
+
