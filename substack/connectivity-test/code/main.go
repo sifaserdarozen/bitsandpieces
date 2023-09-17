@@ -46,11 +46,11 @@ func main() {
 				"tags": [
 				  {
 					"key": "Name",
-					"value": "ReachabilityTest"
+					"value": "AudioGwReachabilityTest"
 				  },
 				  {
 					"key": "Env",
-					"value": "Dev"
+					"value": "Canary"
 				  }
 				]
 			  }

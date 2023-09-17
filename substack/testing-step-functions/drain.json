@@ -1,0 +1,108 @@
+{
+    "Comment": "Generic instance drain step function",
+    "StartAt": "GetRemainingSessions",
+    "States": {
+      "GetRemainingSessions": {
+        "Comment": "Runs Lambda that get number of sessions in the instance",
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "Parameters": {
+          "FunctionName": "${var.getNumberOfSessionsLambdaArn}",
+          "resourceId.$": "$.resourceId"
+        },
+        "ResultSelector": {
+          "sessions.$": "$.sessions"
+        },
+        "ResultPath": "$.lambdaResult",
+        "Next": "EvaluateRemainingSessions",
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Lambda.ResourceNotReadyException",
+              "Lambda.AWSLambdaException"
+            ],
+            "IntervalSeconds": 1,
+            "BackoffRate": 2,
+            "MaxAttempts": 10
+          }
+        ],
+        "TimeoutSeconds": 60
+      },
+      "EvaluateRemainingSessions": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Comment": "Number of remaining sessions reached target, go proceed with terminating resource",
+            "Variable": "$.lambdaResult.sessions",
+            "NumericLessThanEqualsPath": "$.remainingSessions.target",
+            "Next": "TerminateResource"
+          },
+          {
+            "Comment": "Maximum wait for draining is reached, go proceed with terminating resource",
+            "Variable": "$.drainTime.max",
+            "TimestampLessThanPath": "$$.State.EnteredTime",
+            "Next": "TerminateResource"
+          },
+          {
+            "Comment": "Let draining run freely some minimum time",
+            "Variable": "$.drainTime.min",
+            "TimestampGreaterThanPath": "$$.State.EnteredTime",
+            "Next": "Update"
+          },
+          {
+            "Comment": "After letting some minimum time, check if remaining sessions are decreasing to continue draining",
+            "Or": [
+              {
+                "Comment": "Non present previous session means this will be first run, let in this case as well ",
+                "Variable": "$.remainingSessions.previous",
+                "IsPresent": false
+              },
+              {
+                "Variable": "$.lambdaResult.sessions",
+                "NumericLessThanPath": "$.remainingSessions.previous"
+              }
+            ],
+            "Next": "Update"
+          }
+        ],
+        "Default": "TerminateResource"
+      },
+      "Update": {
+        "Type": "Pass",
+        "Parameters": {
+          "previous.$": "$.lambdaResult.sessions",
+          "target.$": "$.remainingSessions.target"
+        },
+        "ResultPath": "$.remainingSessions",
+        "Next": "Wait"
+      },
+      "Wait": {
+        "Type": "Wait",
+        "SecondsPath": "$.waitInterval",
+        "Next": "GetRemainingSessions"
+      },
+      "TerminateResource": {
+        "Comment": "Runs Lambda that terminate the resource",
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "Parameters": {
+          "FunctionName": "${var.terminateResourceLambdaArn}",
+          "resourceId.$": "$.resourceId"
+        },
+        "ResultPath": "$.termainateLambdaResult",
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Lambda.ResourceNotReadyException",
+              "Lambda.AWSLambdaException"
+            ],
+            "IntervalSeconds": 1,
+            "BackoffRate": 2,
+            "MaxAttempts": 10
+          }
+        ],
+        "TimeoutSeconds": 60,
+        "End": true
+      }
+    }
+  }
